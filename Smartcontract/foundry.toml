@@ -1,0 +1,25 @@
+[profile.default]
+src = 'src'
+out = 'out'
+libs = ['lib']
+via_ir = true
+optimizer = true
+optimizer_runs = 200
+verbosity = 5
+# FIX: Explicitly set the Solidity compiler version to match your contracts
+solc_version = "0.8.23" 
+# Alternatively, you can use auto detection:
+# auto_detect_solc = true
+
+[rpc_endpoints]
+celoSepolia = "${CELO_SEPOLIA_RPC_URL}"
+baseSepolia = "${BASE_SEPOLIA_RPC_URL}"
+arbitrumSepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
+liskSepolia = "${LISK_SEPOLIA_RPC_URL}"
+
+[etherscan]
+celoSepolia = { key = "${CELOSCAN_API_KEY}", url = "https://api-alfajores.celoscan.io/api" }
+baseSepolia = { key = "${BASESCAN_API_KEY}", url = "https://api-sepolia.basescan.org/api" }
+arbitrumSepolia = { key = "${ARBISCAN_API_KEY}", url = "https://api-sepolia.arbiscan.io/api" }
+# Lisk Sepolia Blockscout often doesn't require an API key, but the format is correct
+liskSepolia = { key = "${LISKSCAN_API_KEY}", url = "https://sepolia-blockscout.lisk.com/api" }
