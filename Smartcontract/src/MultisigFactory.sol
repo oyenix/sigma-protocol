@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 import "./multisig.sol";
-
+import "./wallet.sol";
 contract MultiSigFactory {
     // ============ STATE ============
     address public factoryOwner;
@@ -159,7 +159,9 @@ contract MultiSigFactory {
         return signerToControllers[_signer];
     }
 
-    
+    function getControllersByOwner(address _creator) external view returns (address[] memory) {
+    return userControllers[_creator];
+}
     // ============ EMERGENCY RESCUE ============
     function rescueETH(uint256 amount) external onlyOwner {
         payable(factoryOwner).transfer(amount);
