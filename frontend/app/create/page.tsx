@@ -16,14 +16,14 @@ import {
   Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useWallets } from '@privy-io/react-auth';
+import { useWallet } from '@/components/providers/wallet-context';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { createMultiSig, initializeProvider, initializeProviderWithPrivy } from '@/lib/web3';
+import { createMultiSig } from '@/lib/web3';
 import { Interface } from 'ethers';
 import { MULTISIG_FACTORY_ABI } from '@/lib/abi';
 import { cn } from '@/lib/utils';
@@ -46,13 +46,12 @@ const TIME_UNITS = [
 const STORAGE_KEY = 'sigma_multisig_draft_v2';
 
 export default function CreateMultisigPage() {
-  const { wallets } = useWallets();
-  const primaryWallet = wallets[0];
+   const { isInitialized, isConnected, address, setShowModal } = useWallet();
+    const userAddress = address ?? '';
 
   // --- STATE ---
   const [isLoaded, setIsLoaded] = useState(false);
   const [step, setStep] = useState(1);
-  const [userAddress, setUserAddress] = useState<string>('');
   const [isConnecting, setIsConnecting] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -111,27 +110,6 @@ export default function CreateMultisigPage() {
       window.location.reload();
     }
   };
-
-  // --- WALLET LOGIC ---
-  useEffect(() => {
-    const init = async () => {
-      if (primaryWallet) {
-        try {
-            await initializeProviderWithPrivy(primaryWallet);
-            setIsConnecting(true);
-            setError(null);
-            const { signer } = await initializeProvider(primaryWallet);
-            const address = await signer.getAddress();
-            setUserAddress(address);
-        } catch(e: any) {
-            console.error(e);
-        } finally {
-            setIsConnecting(false);
-        }
-      }
-    };
-    init();
-  }, [primaryWallet]);
 
   // --- VALIDATION LOGIC ---
   const totalPercentage = owners.reduce((sum, o) => sum + o.percentage, 0);
@@ -204,7 +182,6 @@ export default function CreateMultisigPage() {
         finalTimelock,
         finalExpiry,
         minOwners,
-        daoId // <-- NEW: Passing the multichain salt
       );
 
       const iface = new Interface(MULTISIG_FACTORY_ABI);
@@ -234,16 +211,28 @@ export default function CreateMultisigPage() {
     }
   };
 
-  if (!isLoaded || isConnecting) {
-    return (
-      <div className="min-h-screen bg-white dark:bg-[#080808] p-6 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-black dark:text-white" />
-          <p className="font-bold uppercase tracking-widest">Loading Workspace...</p>
-        </div>
+  if (!isLoaded || !isInitialized) {
+  return (
+    <div className="min-h-screen bg-white dark:bg-[#080808] p-6 flex items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-black dark:text-white" />
+        <p className="font-bold uppercase tracking-widest">Loading Workspace...</p>
       </div>
-    );
-  }
+    </div>
+  );
+}
+if (!isConnected) {
+  return (
+    <div className="min-h-screen bg-white dark:bg-[#080808] p-6 flex items-center justify-center">
+      <div className="max-w-md w-full text-center border-2 border-black dark:border-white p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
+        <h2 className="text-2xl font-black italic uppercase mb-4">Connect to Deploy</h2>
+        <Button onClick={() => setShowModal(true)} size="lg" className="w-full rounded-none border-2 border-black dark:border-white font-bold uppercase hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+          Connect Wallet
+        </Button>
+      </div>
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#080808] p-6 md:p-12 text-black dark:text-white">

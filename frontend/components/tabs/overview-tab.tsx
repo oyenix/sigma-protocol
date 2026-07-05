@@ -8,7 +8,7 @@ import { Copy, Send, Check, ExternalLink, Wallet, Clock, ArrowRightLeft, Coins, 
 import { SubmitTransactionModal } from '@/components/modals/submit-transaction-modal';
 import { AssetsModal } from '@/components/tabs/asset-modal';
 import { formatAmount } from '@/lib/format';
-import { useWallets } from '@privy-io/react-auth';
+import { useWallet } from '@/components/providers/wallet-context';
 import { ethers, BrowserProvider, Contract } from 'ethers';
 
 interface OverviewTabProps {

@@ -1,0 +1,6 @@
+{
+  "/multisigs/page": "app/multisigs/page.js",
+  "/docs/page": "app/docs/page.js",
+  "/create/page": "app/create/page.js",
+  "/page": "app/page.js"
+}

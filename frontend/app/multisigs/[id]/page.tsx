@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MultisigTabs } from '@/components/multisig-tabs';
-import { useWallets, usePrivy } from '@privy-io/react-auth';
+import { useWallet } from '@/components/providers/wallet-context';
+
 import Link from 'next/link';
 import { 
   getMultisigOwners, 
@@ -17,7 +18,7 @@ import {
   getConnectedWalletAddress,
   getTransaction
 } from '@/lib/web3';
-import { MultiSig, Transaction } from '@/lib/types';
+import { MultiSig, MultiSigOwner, Transaction } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 // Modals
@@ -27,8 +28,7 @@ import { BatchConfirmModal } from '@/components/modals/batch-confirm-modal';
 export default function MultisigDetailPage() {
   const params = useParams();
   const controllerAddress = params.id as string;
-  const { ready, authenticated, login } = usePrivy();
-  const { wallets } = useWallets();
+  const { isInitialized, isConnected, setShowModal } = useWallet();
 
   const [multisig, setMultisig] = useState<MultiSig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,51 +47,35 @@ export default function MultisigDetailPage() {
 
   useEffect(() => {
     const fetchMultisigDetail = async () => {
-      if (ready && authenticated && wallets && wallets.length > 0) {
+      if (isInitialized && isConnected) {
         try {
           setLoading(true);
           setError(null);
-          
-          await initializeProvider(wallets[0]);
 
           const walletAddress = await getConnectedWalletAddress(controllerAddress);
 
-          // Fetch basic data
           const [ownersData, configData, balance] = await Promise.all([
             getMultisigOwners(controllerAddress),
             getMultisigConfig(controllerAddress),
-            getWalletBalance(walletAddress), 
+            getWalletBalance(walletAddress),
           ]);
 
-          // Fetch Transactions
           const recentTxs: Transaction[] = [];
           for (let i = 0; i < 20; i++) {
             try {
               const tx = await getTransaction(controllerAddress, i);
               if (tx.initiator !== '0x0000000000000000000000000000000000000000') {
-                recentTxs.push({ 
-                  id: i, 
-                  ...tx,
-                  confirmations: [] 
-                });
-              } else {
-                break; 
-              }
-            } catch (e) { 
-              break; 
-            }
+                recentTxs.push({ id: i, ...tx, confirmations: [] });
+              } else break;
+            } catch { break; }
           }
 
-          const rawAddresses = ownersData?.addresses || [];
-          const rawNames = ownersData?.names || [];
-          const rawPercentages = ownersData?.percentages || [];
-          const rawRemovables = ownersData?.removables || [];
-
-          const ownerList = rawAddresses.map((addr: string, i: number) => ({
-            address: addr,
-            name: rawNames[i] || `Owner ${i + 1}`,
-            percentage: Number(rawPercentages[i]), 
-            removable: rawRemovables[i] || false,
+          // ownersData is already an array of {address, name, percentage, removable}
+          const ownerList: MultiSigOwner[] = (ownersData || []).map((o: MultiSigOwner) => ({
+            address: o.address,
+            name: o.name,
+            percentage: Number(o.percentage),
+            removable: o.removable,
           }));
 
           const fullMultisig: MultiSig = {
@@ -113,7 +97,6 @@ export default function MultisigDetailPage() {
 
           setMultisig(fullMultisig);
         } catch (err: any) {
-          console.error("Error loading multisig:", err);
           setError(err.message || 'Failed to load multisig details');
         } finally {
           setLoading(false);
@@ -121,20 +104,26 @@ export default function MultisigDetailPage() {
       }
     };
 
-    if (controllerAddress && ready) {
-      fetchMultisigDetail();
-    }
-  }, [controllerAddress, ready, authenticated, wallets]);
+    if (controllerAddress && isInitialized) fetchMultisigDetail();
+  }, [controllerAddress, isInitialized, isConnected]);
 
+  if (isInitialized && !isConnected) {
+    return (
+      // same "Access Denied" card, but:
+      <Button onClick={() => setShowModal(true)} /* ... */>Connect Wallet</Button>
+    );
+  }
+
+  if (loading || !isInitialized) 
   // --- RENDERING STATES ---
 
-  if (ready && !authenticated) {
+  if (isInitialized && !isConnected) {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-white dark:bg-[#080808]">
         <div className="max-w-md w-full text-center border-2 border-black dark:border-white p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
           <Wallet className="h-16 w-16 mx-auto mb-6 text-black dark:text-white" />
           <h2 className="text-2xl font-black italic uppercase mb-4">Access Denied</h2>
-          <Button onClick={login} size="lg" className="w-full rounded-none border-2 border-black dark:border-white font-bold uppercase hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+          <Button onClick={() => setShowModal(true)} size="lg" className="w-full rounded-none border-2 border-black dark:border-white font-bold uppercase hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
             Connect Wallet
           </Button>
         </div>
@@ -142,7 +131,7 @@ export default function MultisigDetailPage() {
     );
   }
 
-  if (loading || !ready) {
+  if (loading || !isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#080808]">
          <div className="flex flex-col items-center">

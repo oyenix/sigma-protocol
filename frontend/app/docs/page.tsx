@@ -19,7 +19,7 @@ const DOCS_SECTIONS = [
   { id: 'defi', title: 'DeFi Integrations', icon: ArrowRightLeft }, 
   { id: 'batch', title: 'Batch Operations', icon: Zap },
   { id: 'guardrails', title: 'Security Guardrails', icon: ShieldCheck },
-  { id: 'contracts', title: 'Omnichain Contracts', icon: Map }, // UPDATED
+  { id: 'contracts', title: 'Contract Addresses', icon: Map },
   { id: 'api', title: 'Developer API', icon: Code2 },
   { id: 'troubleshooting', title: 'Troubleshooting', icon: AlertTriangle },
 ];
@@ -95,8 +95,8 @@ export default function DocsPage() {
                 The Sum of <br/><span className="text-primary">Secure Finance</span>
               </h1>
               <p className="text-xl font-medium leading-relaxed max-w-2xl text-muted-foreground border-l-4 border-primary pl-6 py-2">
-                SIGMA Protocol is a cross-chain, modular, weighted-equity multisig framework designed for 
-                decentralized corporate governance. It replaces the standard 1-person-1-vote 
+                SIGMA Protocol is a modular, weighted-equity multisig framework built for Botchain, 
+                designed for decentralized corporate governance. It replaces the standard 1-person-1-vote 
                 model with voting power based on actual ownership percentages.
               </p>
             </section>
@@ -140,7 +140,8 @@ export default function DocsPage() {
               </h2>
               <div className="grid gap-6">
                 {[
-                  { name: 'MultiSigFactory', role: 'REGISTRY', desc: 'Deterministically deploys isolated Controller/Wallet pairs, ensuring your treasury addresses are identical across all chains.' },
+                  { name: 'MultiSigFactory', role: 'REGISTRY', desc: 'Deploys isolated Controller/Wallet pairs for every new treasury on Botchain.' },
+
                   { name: 'MultiSigController', role: 'GOVERNANCE', desc: 'The Brain. Handles confirmation logic, voting weights, and timelocks.' },
                   { name: 'CompanyWallet', role: 'VAULT', desc: 'The immutable asset holder. Only executes calls authorized by its Controller.' }
                 ].map((item) => (
@@ -191,18 +192,24 @@ export default function DocsPage() {
               </h2>
               <div className="grid md:grid-cols-2 gap-6">
                  <div className="border-2 border-black dark:border-white p-6">
-                    <h4 className="font-black uppercase mb-2">Omnichain Native Gas</h4>
+   <h4 className="font-black uppercase mb-2">Botchain Native Gas</h4>
+   <p className="text-sm text-muted-foreground mb-4">
+      Full native support for Botchain's gas token across every treasury deployed on the network.
+   </p>
+   <div className="flex flex-wrap gap-2">
+      <Badge className="rounded-none border-black dark:border-white bg-primary text-primary-foreground">Botchain Native Token</Badge>
+   </div>
+                  </div>
+                  <div className="border-2 border-black dark:border-white p-6">
+                    <h4 className="font-black uppercase mb-2">ERC-20 Tokens</h4>
                     <p className="text-sm text-muted-foreground mb-4">
-                       Full support for native gas tokens across our supported EVM rollups and alt-L1s.
+                        Compatible with any ERC-20 token deployed on Botchain.
                     </p>
                     <div className="flex flex-wrap gap-2">
-                       <Badge className="rounded-none border-black dark:border-white bg-blue-600 text-white">ETH (Base/Arb/Op)</Badge>
-                       <Badge className="rounded-none border-black dark:border-white bg-amber-500 text-white">CELO</Badge>
-                       <Badge className="rounded-none border-black dark:border-white bg-yellow-500 text-black">BNB</Badge>
-                       <Badge className="rounded-none border-black dark:border-white bg-red-500 text-white">AVAX</Badge>
-                       <Badge className="rounded-none border-black dark:border-white bg-black text-white">Tempo</Badge>
+                        <Badge className="rounded-none border-black dark:border-white bg-indigo-800 text-white">USDC (Botchain)</Badge>
+                        <Badge className="rounded-none border-black dark:border-white bg-purple-500 text-white">WETH (Botchain)</Badge>
                     </div>
-                 </div>
+                  </div>
                  <div className="border-2 border-black dark:border-white p-6">
                     <h4 className="font-black uppercase mb-2">ERC-20 Tokens</h4>
                     <p className="text-sm text-muted-foreground mb-4">
@@ -224,7 +231,7 @@ export default function DocsPage() {
                 <ArrowRightLeft className="h-8 w-8 text-primary" /> DeFi Integrations
               </h2>
               <p className="text-muted-foreground">
-                Sigma Protocol supports advanced execution via raw calldata, allowing your treasury to interact directly with decentralized exchanges (DEXes) like Uniswap and Ubeswap directly from the dashboard.
+                Sigma Protocol supports advanced execution via raw calldata, allowing your treasury to interact directly with decentralized exchanges (DEXes) deployed on Botchain, directly from the dashboard.
               </p>
               
               <div className="border-2 border-black dark:border-white p-6 bg-primary/5">
@@ -313,41 +320,39 @@ export default function DocsPage() {
             </section>
 
             {/* 9. CONTRACT ADDRESSES (UPDATED) */}
-            <section id="contracts" className="scroll-mt-8 space-y-8">
-               <h2 className="text-3xl font-black italic uppercase flex items-center gap-3">
-                <Map className="h-8 w-8 text-primary" /> Omnichain Contracts
-              </h2>
-              <div className="flex items-start gap-4 p-4 bg-primary/10 border-2 border-primary mb-6">
-                <Globe className="h-6 w-6 text-primary mt-1 shrink-0" />
-                <p className="text-sm">
-                  Sigma Protocol utilizes deterministic deployments (CREATE2) to ensure that your smart contracts share the <strong>exact same address across all supported blockchains</strong>. Deploy once, and access your treasury on Base, Arbitrum, Celo, and more, using the exact same address.
-                </p>
-              </div>
-              <div className="border-2 border-black dark:border-white overflow-x-auto">
-                 <table className="w-full text-sm text-left min-w-150]">
-                    <thead className="bg-black dark:bg-white text-white dark:text-black font-black uppercase">
-                       <tr>
-                          <th className="px-6 py-3">Contract Component</th>
-                          <th className="px-6 py-3">Global Address (All Networks)</th>
-                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-black/10 dark:divide-white/10 font-mono">
-                       <tr className="bg-muted/10">
-                          <td className="px-6 py-4 font-bold">MultiSigFactory</td>
-                          <td className="px-6 py-4 text-emerald-600 dark:text-emerald-400 font-bold">0x5fCfeDB0FE243aAC48CDeFc3A8249a89E094A942</td>
-                       </tr>
-                       <tr>
-                          <td className="px-6 py-4 font-bold">Your Controller</td>
-                          <td className="px-6 py-4 opacity-70">Deterministic (Identical across chains)</td>
-                       </tr>
-                       <tr className="bg-muted/10">
-                          <td className="px-6 py-4 font-bold">Your Vault</td>
-                          <td className="px-6 py-4 opacity-70">Deterministic (Identical across chains)</td>
-                       </tr>
-                    </tbody>
-                 </table>
-              </div>
-            </section>
+            <h2 className="text-3xl font-black italic uppercase flex items-center gap-3">
+ <Map className="h-8 w-8 text-primary" /> Contract Addresses
+</h2>
+<div className="flex items-start gap-4 p-4 bg-primary/10 border-2 border-primary mb-6">
+  <Globe className="h-6 w-6 text-primary mt-1 shrink-0" />
+  <p className="text-sm">
+    Sigma Protocol is deployed on Botchain. Every treasury you create gets its own unique Controller and Vault contract address, registered under the single MultiSigFactory below.
+  </p>
+</div>
+<div className="border-2 border-black dark:border-white overflow-x-auto">
+   <table className="w-full text-sm text-left min-w-150]">
+      <thead className="bg-black dark:bg-white text-white dark:text-black font-black uppercase">
+         <tr>
+            <th className="px-6 py-3">Contract Component</th>
+            <th className="px-6 py-3">Address (Botchain)</th>
+         </tr>
+      </thead>
+      <tbody className="divide-y divide-black/10 dark:divide-white/10 font-mono">
+         <tr className="bg-muted/10">
+            <td className="px-6 py-4 font-bold">MultiSigFactory</td>
+            <td className="px-6 py-4 text-emerald-600 dark:text-emerald-400 font-bold">0x30cD7d07d792C2cD51ba6512A092dc50E1D5cdd5</td>
+         </tr>
+         <tr>
+            <td className="px-6 py-4 font-bold">Your Controller</td>
+            <td className="px-6 py-4 opacity-70">Unique per treasury — see your dashboard</td>
+         </tr>
+         <tr className="bg-muted/10">
+            <td className="px-6 py-4 font-bold">Your Vault</td>
+            <td className="px-6 py-4 opacity-70">Unique per treasury — see your dashboard</td>
+         </tr>
+      </tbody>
+   </table>
+</div>
 
             {/* 10. DEVELOPER API */}
             <section id="api" className="scroll-mt-8 space-y-8">

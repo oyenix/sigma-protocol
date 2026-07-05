@@ -6,7 +6,7 @@ import {
   UserPlus, Coins, Wallet, Users, ArrowRight, Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useWallets } from '@privy-io/react-auth';
+import { useWallet } from '@/components/providers/wallet-context';
 import { BrowserProvider, ethers, Interface } from 'ethers';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,101 +40,21 @@ const STANDARD_ROUTER_ABI = [
 
 // --- DYNAMIC TOKEN CONFIGURATION ---
 export const CHAIN_TOKENS: Record<number, { name: string; symbol: string; address: string }[]> = {
-  // Base Sepolia (84532)
-  84532: [
+  // Base Sepolia (968)
+  968: [
     { name: 'USDC (Testnet)', symbol: 'USDC', address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e' },
-    { name: 'WETH', symbol: 'WETH', address: '0x4200000000000000000000000000000000000006' },
+    { name: 'Wrapped BOT', symbol: 'WBOT', address: '0x4200000000000000000000000000000000000006' },
   ],
-  // Arbitrum Sepolia (421614)
-  421614: [
-    { name: 'USDC (Testnet)', symbol: 'USDC', address: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d' },
-    { name: 'WETH', symbol: 'WETH', address: '0x980B62Da83eFf3D4576C647993b0c1D7faf17c73' },
-  ],
-  // OP Sepolia (11155420)
-  11155420: [
-    { name: 'USDC (Testnet)', symbol: 'USDC', address: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7' },
-    { name: 'WETH', symbol: 'WETH', address: '0x4200000000000000000000000000000000000006' },
-  ],
-  // Celo Alfajores (44787)
-  44787: [
-    { name: 'USDm (Testnet)', symbol: 'USDm', address: '0x874068565b93198084D1f6874E2f768E6B1516e8' },
-    { name: 'cEUR (Testnet)', symbol: 'cEUR', address: '0x10c6609C0637B194e823A449b2c3a51D1415fF78' },
-  ],
-  // BNB Testnet (97)
-  97: [
-    { name: 'USDT (Mock)', symbol: 'USDT', address: '0x337610d27c682E347C9cD60BD4b3b107C9d34dDd' },
-    { name: 'WBNB', symbol: 'WBNB', address: '0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd' },
-  ],
-  // Avalanche Fuji (43113)
-  43113: [
-    { name: 'USDC (Testnet)', symbol: 'USDC', address: '0x5425890298aed601595a70AB815c96711a31Bc65' },
-    { name: 'WAVAX', symbol: 'WAVAX', address: '0xd00ae08403B9bbb9124bB305C09058E32C39A48c' },
-  ],
-  // Polygon Amoy (80002)
-  80002: [
-    { name: 'USDC (Testnet)', symbol: 'USDC', address: '0x41E94Eb019C0762f9Bfcf9Cb1EE62ce5169950B2' },
-    { name: 'WPOL', symbol: 'WPOL', address: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270' }, 
-  ],
-  // Ethereum Sepolia (11155111)
-  11155111: [
-    { name: 'USDC (Testnet)', symbol: 'USDC', address: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238' },
-    { name: 'WETH', symbol: 'WETH', address: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14' },
-  ],
-  // Lisk Sepolia (4202) - Placeholders
-  4202: [
-    { name: 'Mock USDC', symbol: 'USDC', address: '0x0000000000000000000000000000000000000001' },
-    { name: 'WETH', symbol: 'WETH', address: '0x4200000000000000000000000000000000000006' },
-  ],
-  // Tempo Network (42431) - Placeholders
-  42431: [
-    { name: 'Mock Stable', symbol: 'pUSD', address: '0x0000000000000000000000000000000000000002' },
-    { name: 'WTEM', symbol: 'WTEM', address: '0x0000000000000000000000000000000000000003' },
-  ],
+  
 };
 
 // --- DYNAMIC DEX CONFIGURATION ---
 export const CHAIN_DEXES: Record<number, { name: string; address: string; abi: string[] }[]> = {
   // Base Sepolia
-  84532: [
-    { name: 'Uniswap (Base)', address: '0x327Df1E6de05895d2ab08513aaDD9313Fe505d86', abi: STANDARD_ROUTER_ABI },
+  968: [
+    { name: 'Uniswap (Botchain)', address: '0x327Df1E6de05895d2ab08513aaDD9313Fe505d86', abi: STANDARD_ROUTER_ABI },
   ],
-  // Arbitrum Sepolia
-  421614: [
-    { name: 'Uniswap (Arbitrum)', address: '0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506', abi: STANDARD_ROUTER_ABI },
-  ],
-  // OP Sepolia
-  11155420: [
-    { name: 'Uniswap (OP)', address: '0x4f87A02C1fb7079201a083a21689363e803e4d9c', abi: STANDARD_ROUTER_ABI },
-  ],
-  // Celo Alfajores
-  44787: [
-    { name: 'Uniswap (Celo)', address: '0x62a8F0D03F66D6C655d81C9d3163E5d39A1e2226', abi: STANDARD_ROUTER_ABI },
-    { name: 'Ubeswap (Celo)', address: '0x44760E45c711a37c4A462137F8E4d4d122245b63', abi: STANDARD_ROUTER_ABI },
-  ],
-  // BNB Testnet
-  97: [
-    { name: 'PancakeSwap', address: '0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3', abi: STANDARD_ROUTER_ABI },
-  ],
-  // Avalanche Fuji
-  43113: [
-    { name: 'Trader Joe', address: '0xd705230843258F31E8B62C10a30b2e81Ed259D4f', abi: STANDARD_ROUTER_ABI },
-  ],
-  // Polygon Amoy
-  80002: [
-    { name: 'QuickSwap (Mock)', address: '0x8954AfA98594b838bda56FE4C12a09D7739D179b', abi: STANDARD_ROUTER_ABI },
-  ],
-  // Ethereum Sepolia
-  11155111: [
-    { name: 'Uniswap V2', address: '0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008', abi: STANDARD_ROUTER_ABI },
-  ],
-  // Lisk Sepolia - Placeholder
-  4202: [
-    { name: 'LiskSwap (Mock)', address: '0x0000000000000000000000000000000000000004', abi: STANDARD_ROUTER_ABI },
-  ],
-  // Tempo Network - Placeholder
-  42431: [
-    { name: 'TempoSwap (Mock)', address: '0x0000000000000000000000000000000000000005', abi: STANDARD_ROUTER_ABI },
-  ],
+ 
 };
 
 // --- INTERFACES & HELPERS ---
@@ -174,11 +94,10 @@ export function SubmitTransactionModal({
   controllerAddress,
   defaultTab = 'transfer' 
 }: SubmitTransactionModalProps) {
-  const { wallets } = useWallets();
-  const primaryWallet = wallets[0];
+  const { chainId, address } = useWallet();
   
   // 1. Get active chain ID securely
-  const activeChainId = Number(primaryWallet?.chainId?.split(':')[1] || 84532);
+  const activeChainId = chainId ?? 968;
 
   // 2. Derive dynamic tokens and DEXes
   const activeTokens = CHAIN_TOKENS[activeChainId] 
@@ -343,64 +262,58 @@ export function SubmitTransactionModal({
   };
 
   const handleSubmit = async () => {
-    setError(null);
-    setIsPending(true);
+  setError(null);
+  setIsPending(true);
 
-    try {
-      if (!primaryWallet) throw new Error("Wallet not connected");
-      const provider = await primaryWallet.getEthereumProvider();
-      const ethersProvider = new BrowserProvider(provider);
-      const signer = await ethersProvider.getSigner();
-      let txResponse;
+  try {
+    let txResponse;
 
-      if (mode === 'owner') {
-        if (!ethers.isAddress(newOwnerAddress)) throw new Error("Invalid Address");
-        if (!newOwnerName) throw new Error("Name required");
-        txResponse = await submitAddOwner(
-            controllerAddress, newOwnerAddress, newOwnerName, Number(newOwnerPct), newOwnerRemovable
-        );
-      } 
-      else if (mode === 'custom') {
-        if (!customData || customData === '0x') throw new Error("Transaction data is incomplete.");
+    if (mode === 'owner') {
+      if (!ethers.isAddress(newOwnerAddress)) throw new Error("Invalid Address");
+      if (!newOwnerName) throw new Error("Name required");
+      txResponse = await submitAddOwner(
+        controllerAddress, newOwnerAddress, newOwnerName, Number(newOwnerPct), newOwnerRemovable, activeChainId
+      );
+    } 
+    else if (mode === 'custom') {
+      if (!customData || customData === '0x') throw new Error("Transaction data is incomplete.");
+      txResponse = await submitTransaction(
+        controllerAddress, customTo, customValue || '0', false, ethers.ZeroAddress, customData, activeChainId
+      );
+    } 
+    else {
+      const recipientList = parseList(recipients);
+      const amountList = parseList(amounts);
+      const isToken = assetType === 'token';
+      let targetToken = ethers.ZeroAddress;
+      
+      if (isToken) targetToken = selectedToken === 'custom' ? customTokenAddress : selectedToken;
+
+      if (txScope === 'single') {
         txResponse = await submitTransaction(
-            controllerAddress, customTo, customValue || '0', false, ethers.ZeroAddress, customData, signer
+          controllerAddress, recipientList[0], amountList[0], isToken, targetToken, '0x', activeChainId
         );
-      } 
-      else {
-        const recipientList = parseList(recipients);
-        const amountList = parseList(amounts);
-        const isToken = assetType === 'token';
-        let targetToken = ethers.ZeroAddress;
-        
-        if (isToken) targetToken = selectedToken === 'custom' ? customTokenAddress : selectedToken;
-
-        if (txScope === 'single') {
-          txResponse = await submitTransaction(
-              controllerAddress, recipientList[0], amountList[0], isToken, targetToken, '0x', signer
-          );
-        } else {
-          if (batchType === 'equal') {
-             txResponse = await submitBatchTransferEqual(controllerAddress, targetToken, recipientList, amountList[0]);
-          } else {
-             txResponse = await submitBatchTransferDifferent(controllerAddress, targetToken, recipientList, amountList);
-          }
-        }
+      } else if (batchType === 'equal') {
+        txResponse = await submitBatchTransferEqual(controllerAddress, targetToken, recipientList, amountList[0], activeChainId);
+      } else {
+        txResponse = await submitBatchTransferDifferent(controllerAddress, targetToken, recipientList, amountList, activeChainId);
       }
-
-      setStatusState({
-        isOpen: true,
-        type: 'success',
-        title: 'Proposal Submitted',
-        description: 'Your transaction proposal has been created successfully.',
-        txHash: txResponse?.hash
-      });
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Failed to submit transaction');
-    } finally {
-      setIsPending(false);
     }
-  };
+
+    setStatusState({
+      isOpen: true,
+      type: 'success',
+      title: 'Proposal Submitted',
+      description: 'Your transaction proposal has been created successfully.',
+      txHash: txResponse?.hash
+    });
+  } catch (err: any) {
+    console.error(err);
+    setError(err.message || 'Failed to submit transaction');
+  } finally {
+    setIsPending(false);
+  }
+};
 
   const handleStatusClose = () => {
     setStatusState(prev => ({ ...prev, isOpen: false }));

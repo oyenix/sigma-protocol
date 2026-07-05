@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Coins, ArrowUpRight, Wallet, RefreshCw } from 'lucide-react';
 import { ethers, BrowserProvider, Contract } from 'ethers';
-import { useWallets } from '@privy-io/react-auth';
+import { useWallet } from '@/components/providers/wallet-context';
 import { MultiSig } from '@/lib/types';
 import { formatAmount } from '@/lib/format';
 

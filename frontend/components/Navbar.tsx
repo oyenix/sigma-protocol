@@ -9,7 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { ConnectWallet } from './connectwallet';
-import { useWallets } from '@privy-io/react-auth';
+import { useWallet } from '@/components/providers/wallet-context';
 import { SUPPORTED_CHAINS, getChainConfig } from '@/lib/chains';
 
 const navItems = [
@@ -20,15 +20,12 @@ const navItems = [
 ];
 
 export function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
+   const [isOpen, setIsOpen] = useState(false);
   const [isDark, setIsDark] = useState(true); 
   const pathname = usePathname();
-  
-  // Setup Wallet for Network Switcher
-  const { wallets } = useWallets();
-  const primaryWallet = wallets[0];
-  const activeChainId = Number(primaryWallet?.chainId?.split(':')[1] || 8453);
-  const currentChain = getChainConfig(activeChainId);
+
+  const { isConnected, chainId, switchChain } = useWallet();
+  const currentChain = getChainConfig(chainId ?? 8453);
 
   useEffect(() => {
     const saved = localStorage.getItem('theme');
@@ -46,9 +43,9 @@ export function Navbar() {
     localStorage.setItem('theme', nextState ? 'dark' : 'light');
   };
 
-  const switchNetwork = async (chainId: number) => {
-    if (primaryWallet) {
-      await primaryWallet.switchChain(chainId);
+ const switchNetwork = async (targetChainId: number) => {
+    if (isConnected) {
+      await switchChain(targetChainId);
     }
   };
 
@@ -88,7 +85,7 @@ export function Navbar() {
             </Button>
 
             {/* NETWORK SWITCHER DROPDOWN */}
-              {primaryWallet && (
+              {isConnected && (
                 <DropdownMenu>
                   {/* FIX: Removed asChild and <Button>. Styling the Trigger directly guarantees the click event fires. */}
                   <DropdownMenuTrigger className="hidden md:flex h-10 items-center justify-center px-4 rounded-none border-2 border-black dark:border-white font-black uppercase text-xs bg-white dark:bg-[#080808] hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all focus:outline-none">
@@ -104,7 +101,7 @@ export function Navbar() {
                         onSelect={() => switchNetwork(chain.id)}
                         className={cn(
                           "font-bold uppercase text-xs cursor-pointer focus:bg-black focus:text-white dark:focus:bg-white dark:focus:text-black rounded-none",
-                          activeChainId === chain.id && "bg-muted/50"
+                          chainId === chain.id && "bg-muted/50"
                         )}
                       >
                         {chain.name}
@@ -137,10 +134,10 @@ export function Navbar() {
             ))}
             <div className="pt-4 border-t border-black/10 dark:border-white/10 space-y-4">
                {/* Mobile Network Switcher */}
-               {primaryWallet && (
+               {isConnected && (
                  <div className="grid grid-cols-2 gap-2">
                     {Object.values(SUPPORTED_CHAINS).slice(0, 4).map((chain) => (
-                       <Button key={chain.id} variant={activeChainId === chain.id ? "default" : "outline"} size="sm" onClick={() => switchNetwork(chain.id)} className="rounded-none border-2 border-black dark:border-white font-bold uppercase text-[10px]">
+                       <Button key={chain.id} variant={chainId === chain.id ? "default" : "outline"} size="sm" onClick={() => switchNetwork(chain.id)} className="rounded-none border-2 border-black dark:border-white font-bold uppercase text-[10px]">
                          {chain.name}
                        </Button>
                     ))}

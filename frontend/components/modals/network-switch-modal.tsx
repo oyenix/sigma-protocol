@@ -2,54 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { useWallets } from '@privy-io/react-auth';
+import { useWallet } from '@/components/providers/wallet-context'; // adjust path
 import { SUPPORTED_CHAINS, getChainConfig } from '@/lib/chains';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export function NetworkSwitchModal() {
+  const { isConnected, chainId, switchChain } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
-  const { wallets } = useWallets();
-  
-  const primaryWallet = wallets[0];
-  const activeChainId = Number(primaryWallet?.chainId?.split(':')[1] || 0);
 
   useEffect(() => {
-    // If no wallet is connected, close the modal
-    if (!primaryWallet) {
-      setIsOpen(false);
-      return;
-    }
+    if (!isConnected || !chainId) { setIsOpen(false); return; }
+    setIsOpen(!Object.keys(SUPPORTED_CHAINS).includes(String(chainId)));
+  }, [isConnected, chainId]);
 
-    // Check if the current chain ID exists in your lib/chains.ts configuration
-    const isSupported = Object.keys(SUPPORTED_CHAINS).includes(String(activeChainId));
-
-    // Open modal ONLY if the connected chain is not in your supported list
-    setIsOpen(!isSupported);
-  }, [primaryWallet, activeChainId]);
-
-  const handleSwitchNetwork = async () => {
-    if (primaryWallet) {
-      try {
-        // Fallback to Base Sepolia (84532) or your preferred default testnet
-        await primaryWallet.switchChain(84532);
-        setIsOpen(false);
-      } catch (error) {
-        console.error('Failed to switch network:', error);
-      }
-    }
+  const handleSwitch = async () => {
+    await switchChain(968); // Botchain
+    setIsOpen(false);
   };
 
-  // Render nothing if no wallet is connected or if they are on a supported chain
-  if (!primaryWallet || isOpen === false) {
-    return null;
-  }
+  if (!isConnected || !isOpen) return null;
 
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
@@ -60,31 +31,24 @@ export function NetworkSwitchModal() {
             <AlertDialogTitle className="font-black uppercase tracking-widest text-lg">Unsupported Network</AlertDialogTitle>
           </div>
           <AlertDialogDescription className="pt-2 font-mono text-sm">
-            You are currently connected to an unsupported network. Please switch to a supported testnet to continue managing your treasuries.
+            You are on an unsupported network. Please switch to Botchain to continue.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        
-        <div className="bg-muted/10 p-3 rounded-none text-sm border-2 border-black dark:border-white mt-4">
-          <div className="flex justify-between mb-2">
-             <span className="font-bold uppercase text-[10px] opacity-60 tracking-widest">Supported Networks:</span>
-             <span className="font-mono font-bold text-xs text-right">
-                Base, Arbitrum, OP, Celo, etc.
-             </span>
+        <div className="bg-muted/10 p-3 border-2 border-black dark:border-white mt-4 text-sm">
+          <div className="flex justify-between">
+            <span className="font-bold uppercase text-[10px] opacity-60 tracking-widest">Supported:</span>
+            <span className="font-mono font-bold text-xs">Botchain (968)</span>
           </div>
-          <div className="flex justify-between pt-2 border-t-2 border-black/10 dark:border-white/10">
-             <span className="font-bold uppercase text-[10px] opacity-60 tracking-widest">Your Connection:</span>
-             <span className="font-mono text-xs text-red-500 font-bold">
-                Chain ID: {activeChainId || 'Unknown'}
-             </span>
+          <div className="flex justify-between pt-2 border-t-2 border-black/10 dark:border-white/10 mt-2">
+            <span className="font-bold uppercase text-[10px] opacity-60 tracking-widest">Your Chain:</span>
+            <span className="font-mono text-xs text-red-500 font-bold">Chain ID: {chainId ?? 'Unknown'}</span>
           </div>
         </div>
-
         <div className="flex gap-3 justify-end mt-6">
-          <AlertDialogAction 
-            onClick={handleSwitchNetwork}
+          <AlertDialogAction onClick={handleSwitch}
             className="rounded-none border-2 border-black dark:border-white bg-primary text-primary-foreground font-black uppercase text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all"
           >
-            Switch to Base Sepolia
+            Switch to Botchain
           </AlertDialogAction>
         </div>
       </AlertDialogContent>

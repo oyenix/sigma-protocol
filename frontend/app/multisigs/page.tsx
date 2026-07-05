@@ -7,67 +7,66 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { MultisigCard } from '@/components/multisig-card';
 import Link from 'next/link';
-import { useWallets, usePrivy } from '@privy-io/react-auth';
+import { useWallet } from '@/components/providers/wallet-context';
 import { initializeProvider, getUserMultiSigs } from '@/lib/web3';
 
 export default function MultisigsPage() {
-  const { ready, authenticated, login } = usePrivy();
-  const { wallets } = useWallets();
+  
+   const { isInitialized, isConnected, setShowModal, address } = useWallet();
+
   
   const [searchQuery, setSearchQuery] = useState('');
   const [userMultisigs, setUserMultisigs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchMyMultisigs = async () => {
-      if (ready && authenticated && wallets && wallets.length > 0) {
-        try {
-          setLoading(true);
-          setError(null);
-          
-          await initializeProvider(wallets[0]);
-          const address = wallets[0].address;
-          const rawData = await getUserMultiSigs(address);
-          
-          const formattedData = rawData.map((m: any) => ({
-            name: m.name || 'Unnamed Treasury',
-            controller: m.controllerAddress,
-            wallet: m.walletAddress,
-            balance: m.balance || '0',
-            isCreator: m.isOwner,
-            owners: m.owners || [],
-            config: m.config || {
-              paused: false,
-              requiredPercentage: 0,
-              timelockPeriod: 0,
-              expiryPeriod: 0,
-              minOwners: 0
-            }
-          }));
-          
-          setUserMultisigs(formattedData);
-        } catch (err: any) {
-          console.error("Fetch Error:", err);
-          setError(err.message || "Failed to load multisigs");
-        } finally {
-          setLoading(false);
-        }
-      } else if (ready && !authenticated) {
+ useEffect(() => {
+  const fetchMyMultisigs = async () => {
+    if (isInitialized && isConnected && address) {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const rawData = await getUserMultiSigs(address);
+
+        const formattedData = rawData.map((m: any) => ({
+          name: m.name || 'Unnamed Treasury',
+          controller: m.controllerAddress,
+          wallet: m.walletAddress,
+          balance: m.balance || '0',
+          isCreator: m.isOwner,
+          owners: m.owners || [],
+          config: m.config || {
+            paused: false,
+            requiredPercentage: 0,
+            timelockPeriod: 0,
+            expiryPeriod: 0,
+            minOwners: 0
+          }
+        }));
+
+        setUserMultisigs(formattedData);
+      } catch (err: any) {
+        console.error("Fetch Error:", err);
+        setError(err.message || "Failed to load multisigs");
+      } finally {
         setLoading(false);
       }
-    };
+    } else if (isInitialized && !isConnected) {
+      setLoading(false);
+    }
+  };
 
-    fetchMyMultisigs();
-  }, [ready, wallets, authenticated]);
-
+  fetchMyMultisigs();
+}, [isInitialized, isConnected, address]);
   const filteredMultisigs = userMultisigs.filter((m) =>
     m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     m.controller.toLowerCase().includes(searchQuery.toLowerCase()) ||
     m.wallet.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (!ready || (loading && userMultisigs.length === 0)) {
+    if (!isInitialized || (loading && userMultisigs.length === 0)) {
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-[#080808]">
         <div className="h-12 w-12 border-4 border-black dark:border-white border-b-transparent animate-spin rounded-full mb-4" />
@@ -76,14 +75,14 @@ export default function MultisigsPage() {
     );
   }
 
-  if (!authenticated) {
+  if (!isConnected) {
     return (
       <div className="min-h-screen p-6 flex items-center justify-center text-center bg-white dark:bg-[#080808]">
         <div className="max-w-md w-full border-2 border-black dark:border-white p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:shadow-[8px_8px_0px_0px_rgba(255,255,255,1)]">
             <Wallet className="h-12 w-12 mx-auto mb-6 text-black dark:text-white" />
             <h2 className="text-3xl font-black italic uppercase mb-2">Restricted Access</h2>
             <p className="text-muted-foreground mb-8 font-medium">Connect your wallet to access the Treasury Terminal.</p>
-            <Button onClick={login} size="lg" className="w-full rounded-none border-2 border-black dark:border-white font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all">
+            <Button onClick={() => setShowModal(true)} size="lg" className="w-full rounded-none border-2 border-black dark:border-white font-bold uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all">
               Connect Wallet
             </Button>
         </div>

@@ -13,7 +13,7 @@ import { formatAmount } from '@/lib/format';
 import { MULTISIG_CONTROLLER_ABI } from '@/lib/abi'; 
 import { StatusModal, StatusType } from '@/components/modals/status-modal';
 // 1. IMPORT USEWALLETS
-import { useWallets } from '@privy-io/react-auth';
+import { useWallet } from '@/components/providers/wallet-context';
 
 interface TransactionDetailModalProps {
   isOpen: boolean;
@@ -31,8 +31,8 @@ export function TransactionDetailModal({
   onClose,
 }: TransactionDetailModalProps) {
   // 2. GET CURRENT USER ADDRESS
-  const { wallets } = useWallets();
-  const currentUserAddress = wallets[0]?.address?.toLowerCase();
+  const { address } = useWallet();
+  const currentUserAddress = address?.toLowerCase();
 
   const [isPending, setIsPending] = useState(false);
   const [copied, setCopied] = useState(false);

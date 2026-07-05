@@ -44,7 +44,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="max-w-2xl text-lg md:text-xl text-muted-foreground mb-12 font-medium">
-            Sigma Protocol decouples governance logic from asset storage. Assign voting power based on equity and automate mass payouts on Celo.
+            Sigma Protocol decouples governance logic from asset storage. Assign voting power based on equity and automate mass payouts on Botchain.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -116,8 +116,8 @@ export default function LandingPage() {
         />
         <FeatureCard 
           icon={<Globe className="h-8 w-8" />}
-          title="Celo Native"
-          desc="Optimized for Alfajores with sub-cent transaction costs."
+          title="Botchain Native"
+          desc="Optimized for Botchain with sub-cent transaction costs."
           className="md:col-span-1"
         />
       </section>
@@ -132,7 +132,7 @@ export default function LandingPage() {
      />
      <StatItem 
        label="Value Secured" 
-       value={loading ? '...' : `${tvlLocked.toFixed(2)} CELO`} 
+       value={loading ? '...' : `${tvlLocked.toFixed(2)} BOT`} 
        className="text-black dark:text-white"
      />
      <StatItem 
@@ -162,13 +162,13 @@ export default function LandingPage() {
           <span className="font-black uppercase italic text-3xl tracking-tighter">SIGMA</span>
         </div>
         <p className="max-w-xs text-sm font-medium leading-relaxed text-muted-foreground uppercase">
-          Weighted equity governance and automated treasury operations for the next generation of Celo-native organizations.
+          Weighted equity governance and automated treasury operations for the next generation of Botchain-native organizations.
         </p>
         <div className="flex gap-4">
-          <Link href="https://github.com/jerydam" className="p-2 border-2 border-black dark:border-white hover:bg-primary hover:text-white transition-all">
+          <Link href="https://github.com/oyenix" className="p-2 border-2 border-black dark:border-white hover:bg-primary hover:text-white transition-all">
             <Github className="h-5 w-5" />
           </Link>
-          <Link href="https://x.com/jerydam00" className="p-2 border-2 border-black dark:border-white hover:bg-primary hover:text-white transition-all">
+          <Link href="https://x.com/oyenix" className="p-2 border-2 border-black dark:border-white hover:bg-primary hover:text-white transition-all">
             <Twitter className="h-5 w-5" />
           </Link>
         </div>
@@ -195,9 +195,9 @@ export default function LandingPage() {
         <FooterLinkGroup 
           title="Ecosystem" 
           links={[
-            { label: 'Celo Foundation', href: 'https://celo.org' },
-            { label: 'Sepolia Faucet', href: 'https://faucet.celo.org/celo-sepolia' },
-            { label: 'CeloScan', href: 'https://sepolia.celoscan.io/' },
+            { label: 'Botchain', href: 'https://bohr.life' },
+            { label: 'Botchain Faucet', href: 'https://faucet.bohr.life' },
+            { label: 'Botchain Explorer', href: 'https://scan.bohr.life' },
           ]} 
         />
       </div>
