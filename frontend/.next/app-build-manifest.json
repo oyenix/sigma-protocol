@@ -1,9 +1,9 @@
 {
   "pages": {
-    "/page": [
+    "/multisigs/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
+      "static/chunks/app/multisigs/page.js"
     ],
     "/layout": [
       "static/chunks/webpack.js",
@@ -16,10 +16,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/create/page.js"
     ],
-    "/multisigs/page": [
+    "/multisigs/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/multisigs/page.js"
+      "static/chunks/app/multisigs/[id]/page.js"
     ],
     "/docs/page": [
       "static/chunks/webpack.js",

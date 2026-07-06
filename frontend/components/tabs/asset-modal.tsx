@@ -40,17 +40,17 @@ const KNOWN_TOKENS = [
 ];
 
 export function AssetsModal({ isOpen, onClose, multisig }: AssetsModalProps) {
-  const { wallets } = useWallets();
+const { getActiveSigner } = useWallet();
   const [tokens, setTokens] = useState<TokenAsset[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchAssets = async () => {
-    if (!wallets[0] || !isOpen) return;
-    
-    setLoading(true);
-    try {
-      const provider = await wallets[0].getEthereumProvider();
-      const ethersProvider = new BrowserProvider(provider);
+  if (!isOpen) return;
+  setLoading(true);
+  try {
+    const signer = await getActiveSigner();
+    if (!signer) return;
+    const ethersProvider = signer.provider;
 
       // 1. Merge Known Tokens with Transaction History
       const tokenSet = new Set<string>();
@@ -127,7 +127,7 @@ export function AssetsModal({ isOpen, onClose, multisig }: AssetsModalProps) {
                       <Wallet className="h-5 w-5 text-primary" />
                    </div>
                    <div>
-                      <p className="font-bold">CELO</p>
+                      <p className="font-bold">BOT</p>
                       <p className="text-xs text-muted-foreground">Native Token</p>
                    </div>
                 </div>
@@ -158,7 +158,7 @@ export function AssetsModal({ isOpen, onClose, multisig }: AssetsModalProps) {
                          </div>
                          <div>
                             <p className="font-medium text-sm">{t.name}</p>
-                            <a href={`https://sepolia.celoscan.io/token/${t.address}?a=${multisig.wallet}`} target="_blank" className="text-[10px] text-muted-foreground flex items-center gap-1 hover:text-primary">
+                            <a href={`https://scan.bohr.life/token/${t.address}?a=${multisig.wallet}`} target="_blank" className="text-[10px] text-muted-foreground flex items-center gap-1 hover:text-primary">
                                {t.symbol} <ArrowUpRight className="h-2.5 w-2.5" />
                             </a>
                          </div>

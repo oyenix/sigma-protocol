@@ -312,26 +312,86 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       return wallet
     } catch { return null }
   }, [session?.token, session?.walletType])
+ const switchChain = useCallback(async (targetChainId: number) => {
+    const viemChain = supportedChains.find(c => c.id === targetChainId)
+    if (!viemChain) { toast.error("Unsupported chain"); return }
+
+    if (walletType === "embedded") {
+      const updated = { ...session!, chainId: targetChainId }
+      setSession(updated)
+      saveSession(updated)
+      toast.success(`Switched to ${viemChain.name}`)
+      return
+    }
+
+    const raw = rawProviderRef.current
+    if (!raw) return
+    const hexId = `0x${targetChainId.toString(16)}`
+    try {
+      try {
+        await raw.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hexId }] })
+      } catch (err: any) {
+        if (err.code === 4902 || err.message?.includes("Unrecognized chain ID")) {
+          await raw.request({
+            method: "wallet_addEthereumChain",
+            params: [{
+              chainId:           hexId,
+              chainName:         viemChain.name,
+              nativeCurrency:    viemChain.nativeCurrency,
+              rpcUrls:           [CHAIN_RPC[targetChainId] ?? viemChain.rpcUrls.default.http[0]],
+              blockExplorerUrls: viemChain.blockExplorers
+                ? [Object.values(viemChain.blockExplorers)[0].url] : [],
+            }],
+          })
+        } else throw err
+      }
+      for (let i = 0; i < 12; i++) {
+        await new Promise(r => setTimeout(r, 500))
+        const net = await new BrowserProvider(raw).getNetwork()
+        if (Number(net.chainId) === targetChainId) break
+      }
+      await buildProvider(raw).then(result => {
+        if (!result) return
+        setProvider(result.provider)
+        setSigner(result.signer)
+        const updated = { ...session!, chainId: targetChainId }
+        setSession(updated)
+        saveSession(updated)
+      })
+      toast.success(`Switched to ${viemChain.name}`)
+    } catch (err: any) {
+      if (err?.code === 4001) toast.error("Switch cancelled")
+      else toast.error("Failed to switch network")
+    }
+  }, [session, walletType])
 
   // ── getActiveSigner ───────────────────────────────────────────────────────
   const getActiveSigner = useCallback(async (targetChainId?: number) => {
-    if (session?.walletType === "external") {
-      if (signer) return signer
-      const raw = rawProviderRef.current
-      if (raw) {
-        const result = await buildProvider(raw)
-        if (result) {
-          setProvider(result.provider)
-          setSigner(result.signer)
-          return result.signer
-        }
-      }
-      return null
+  if (session?.walletType === "external") {
+    // If a specific chain is requested, ensure we're on it
+    if (targetChainId && chainId !== targetChainId) {
+      await switchChain(targetChainId)
     }
-    const cid = targetChainId ?? chainId
-    if (!cid) return null
-    return getEmbeddedSigner(cid)
-  }, [session?.walletType, signer, chainId, getEmbeddedSigner])
+
+    if (signer) return signer
+    const raw = rawProviderRef.current
+    if (raw) {
+      const result = await buildProvider(raw)
+      if (result) {
+        setProvider(result.provider)
+        setSigner(result.signer)
+        return result.signer
+      }
+    }
+    return null
+  }
+
+  const cid = targetChainId ?? chainId
+  if (!cid) return null
+  return getEmbeddedSigner(cid)
+}, [session?.walletType, signer, chainId, getEmbeddedSigner, switchChain])
+
+
   useEffect(() => {
   registerSignerGetter(getActiveSigner);
 }, [getActiveSigner]);
@@ -438,59 +498,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // ── Switch chain ──────────────────────────────────────────────────────────
-  const switchChain = useCallback(async (targetChainId: number) => {
-    const viemChain = supportedChains.find(c => c.id === targetChainId)
-    if (!viemChain) { toast.error("Unsupported chain"); return }
-
-    if (walletType === "embedded") {
-      const updated = { ...session!, chainId: targetChainId }
-      setSession(updated)
-      saveSession(updated)
-      toast.success(`Switched to ${viemChain.name}`)
-      return
-    }
-
-    const raw = rawProviderRef.current
-    if (!raw) return
-    const hexId = `0x${targetChainId.toString(16)}`
-    try {
-      try {
-        await raw.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hexId }] })
-      } catch (err: any) {
-        if (err.code === 4902 || err.message?.includes("Unrecognized chain ID")) {
-          await raw.request({
-            method: "wallet_addEthereumChain",
-            params: [{
-              chainId:           hexId,
-              chainName:         viemChain.name,
-              nativeCurrency:    viemChain.nativeCurrency,
-              rpcUrls:           [CHAIN_RPC[targetChainId] ?? viemChain.rpcUrls.default.http[0]],
-              blockExplorerUrls: viemChain.blockExplorers
-                ? [Object.values(viemChain.blockExplorers)[0].url] : [],
-            }],
-          })
-        } else throw err
-      }
-      for (let i = 0; i < 12; i++) {
-        await new Promise(r => setTimeout(r, 500))
-        const net = await new BrowserProvider(raw).getNetwork()
-        if (Number(net.chainId) === targetChainId) break
-      }
-      await buildProvider(raw).then(result => {
-        if (!result) return
-        setProvider(result.provider)
-        setSigner(result.signer)
-        const updated = { ...session!, chainId: targetChainId }
-        setSession(updated)
-        saveSession(updated)
-      })
-      toast.success(`Switched to ${viemChain.name}`)
-    } catch (err: any) {
-      if (err?.code === 4001) toast.error("Switch cancelled")
-      else toast.error("Failed to switch network")
-    }
-  }, [session, walletType])
-
+ 
   // ── ensureCorrectNetwork ──────────────────────────────────────────────────
   const ensureCorrectNetwork = useCallback(async (requiredChainId: number) => {
     if (!isConnected) { setShowModal(true); return false }

@@ -65,14 +65,14 @@ export default function CreateMultisigPage() {
     { address: '', name: '', percentage: 60, removable: false },
     { address: '', name: '', percentage: 40, removable: true },
   ]);
-  const [requiredPercentage, setRequiredPercentage] = useState(66);
+  const [requiredPercentage, setRequiredPercentage] = useState(0);
   const [minOwners, setMinOwners] = useState(2);
   const [timelockVal, setTimelockVal] = useState(24);
   const [timelockUnit, setTimelockUnit] = useState(3600);
   const [expiryVal, setExpiryVal] = useState(7);
   const [expiryUnit, setExpiryUnit] = useState(86400);
   const [deployedAddress, setDeployedAddress] = useState<string>('');
-
+  
   // --- PERSISTENCE LOGIC ---
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -96,6 +96,8 @@ export default function CreateMultisigPage() {
     setIsLoaded(true);
   }, []);
 
+  
+
   useEffect(() => {
     if (!isLoaded) return;
     const data = {
@@ -117,7 +119,7 @@ export default function CreateMultisigPage() {
     (o) => o.address && o.address.startsWith('0x') && o.address.length === 42 && o.name.trim() !== ''
   );
   const isCreatorInOwners = owners.some(o => o.address.toLowerCase() === userAddress.toLowerCase());
-
+  const effectiveThreshold = requiredPercentage || totalPercentage;
   const isStep1Valid =
     multisigName.trim().length > 0 &&
     daoId.trim().length > 0 &&
@@ -135,7 +137,11 @@ export default function CreateMultisigPage() {
       setDaoId(val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
     }
   };
-
+useEffect(() => {
+  if (requiredPercentage > totalPercentage) {
+    setRequiredPercentage(0); // resets to totalPercentage default
+  }
+}, [totalPercentage]);
   // --- ACTIONS ---
   const addOwner = () => {
     const remaining = 100 - totalPercentage;
@@ -178,10 +184,11 @@ export default function CreateMultisigPage() {
         owners.map((o) => o.name),
         owners.map((o) => o.percentage),
         owners.map((o) => o.removable),
-        requiredPercentage,
+        effectiveThreshold,  // ← was requiredPercentage
         finalTimelock,
         finalExpiry,
         minOwners,
+        968
       );
 
       const iface = new Interface(MULTISIG_FACTORY_ABI);
@@ -461,19 +468,22 @@ if (!isConnected) {
               <div className="text-center">
                 <p className="text-xs font-black uppercase opacity-60 mb-4">Approval Threshold Required</p>
                 <div className="text-8xl font-black italic text-black dark:text-white mb-2">
-                    {requiredPercentage}%
+                  {effectiveThreshold}%
                 </div>
-                
+
                 <Slider
-                  value={[requiredPercentage]}
-                  onValueChange={([v]) => setRequiredPercentage(v)}
+                  value={[effectiveThreshold]}
+                  onValueChange={([v]) => setRequiredPercentage(Math.min(v, totalPercentage))}
                   min={1}
-                  max={100}
+                  max={totalPercentage || 100}
                   step={1}
                   className="max-w-lg mx-auto py-6"
                 />
                 <p className="text-xs text-muted-foreground uppercase font-medium">
-                    Of total equity voting power to execute
+                  Of total equity voting power to execute
+                </p>
+                <p className="text-[10px] text-muted-foreground uppercase font-medium mt-1 opacity-60">
+                  Max: {totalPercentage}% (total allocated equity)
                 </p>
               </div>
 
@@ -628,7 +638,7 @@ if (!isConnected) {
                         <h3 className="font-black uppercase text-sm border-b-2 border-black dark:border-white pb-2">Governance Rules</h3>
                         <div className="flex justify-between">
                            <span className="text-sm font-bold opacity-60">THRESHOLD</span>
-                           <p className="font-mono font-bold">{requiredPercentage}%</p>
+                           <p className="font-mono font-bold">{effectiveThreshold}%</p>
                         </div>
                         <div className="flex justify-between">
                            <span className="text-sm font-bold opacity-60">TIMELOCK</span>

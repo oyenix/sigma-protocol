@@ -1,10 +1,14 @@
 // Contract and app data types
-export interface Owner {
+
+export interface MultiSigOwner {
   address: string;
   name: string;
   percentage: number;
   removable: boolean;
 }
+
+// Alias for backward compat if anything imports Owner directly
+export type Owner = MultiSigOwner;
 
 export interface Transaction {
   id: number;
@@ -16,34 +20,9 @@ export interface Transaction {
   tokenAddress: string;
   executed: boolean;
   confirmationCount: string;
-  confirmations: string[]; // Fixed: Changed from {} to string[]
+  confirmations: string[];
   timestamp: string;
   timelockEnd: string;
-}
-
-export interface MultiSigOwner {
-  address: string;
-  name: string;
-  percentage: number;
-  removable: boolean;
-}
-
-export interface MultiSig {
-  controller: string;
-  wallet: string;
-  name: string;
-  owners: MultiSigOwner[];
-  balance: string;
-  config: {
-    requiredPercentage: number;
-    paused: boolean;
-    timelockPeriod: number;
-    expiryPeriod: number;
-    minOwners: number;
-  };
-  transactions: Transaction[]; // Added this required property
-  deployed?: number;
-  isCreator?: boolean;
 }
 
 export interface MultisigConfig {
@@ -54,3 +33,14 @@ export interface MultisigConfig {
   paused: boolean;
 }
 
+export interface MultiSig {
+  controller: string;
+  wallet: string;
+  name: string;
+  owners: MultiSigOwner[];
+  balance: string;
+  config: MultisigConfig;
+  transactions: Transaction[];
+  deployed?: number;
+  isCreator?: boolean;
+}

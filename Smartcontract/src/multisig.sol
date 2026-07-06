@@ -234,7 +234,10 @@ contract MultiSigWalletController is ReentrancyGuard {
         require(success, "Execution failed");
         emit TransactionExecuted(txId);
     }
-
+    function isConfirmedBy(uint256 txId, address owner) external view returns (bool) {
+    require(txId < transactions.length, "Invalid tx");
+    return transactions[txId].confirmations[owner];
+    }
     function isConfirmed(uint256 txId) public view returns (bool) {
         return transactions[txId].confirmationCount >= requiredPercentage;
     }

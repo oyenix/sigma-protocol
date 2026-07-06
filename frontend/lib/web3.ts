@@ -5,12 +5,13 @@ import {
   MULTISIG_FACTORY_ABI,
 } from '@/lib/abi';
 import { getActiveSigner } from '@/lib/get-signer'; // your existing helper
-
-export const MULTISIG_FACTORY_ADDRESS = '0x30cD7d07d792C2cD51ba6512A092dc50E1D5cdd5' as const;
+import { DEFAULT_CHAIN_ID } from '@/lib/chains';
+export const MULTISIG_FACTORY_ADDRESS = '0x204C4913b83899b91DdF61A0b2BFaeef25c2bCBb' as const;
 
 // ── Internal helpers ─────────────────────────────────────────────────────────
 
-async function getSigner(chainId?: number): Promise<Signer> {
+async function getSigner(chainId: number = DEFAULT_CHAIN_ID
+): Promise<Signer> {
   const s = await getActiveSigner(chainId);
   if (!s) throw new Error('Wallet not connected');
   return s;
@@ -33,7 +34,8 @@ export async function getConnectedWalletAddress(controllerAddress: string) {
   const info = await getMultiSigInfo(controllerAddress);
   return info.wallet;
 }
-async function getContractWithSigner(address: string, abi: any, chainId?: number) {
+async function getContractWithSigner(address: string, abi: any, chainId: number = DEFAULT_CHAIN_ID
+) {
   const s = await getSigner(chainId);
   return new ethers.Contract(address, abi, s);
 }
@@ -43,7 +45,8 @@ function getReadContract(address: string, abi: any) {
 }
 
 // ── Public signer contract helper (used by modals) ───────────────────────────
-export const getSignedContract = async (address: string, abi: any, chainId?: number) => {
+export const getSignedContract = async (address: string, abi: any, chainId: number = DEFAULT_CHAIN_ID
+) => {
   const s = await getSigner(chainId);
   return new ethers.Contract(address, abi, s);
 };
@@ -84,7 +87,8 @@ export const submitTransaction = async (
   isToken: boolean,
   tokenAddress: string,
   data: string,
-  chainId?: number
+  chainId: number = DEFAULT_CHAIN_ID
+
 ) => {
   const contract = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   const valueWei = ethers.parseEther(value || '0');
@@ -99,7 +103,8 @@ export const submitBatchTransferEqual = async (
   token: string,
   recipients: string[],
   amountPer: string,
-  chainId?: number
+  chainId: number = DEFAULT_CHAIN_ID
+
 ) => {
   const contract = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   const amountWei = ethers.parseEther(amountPer || '0');
@@ -113,7 +118,8 @@ export const submitBatchTransferDifferent = async (
   token: string,
   recipients: string[],
   amounts: string[],
-  chainId?: number
+  chainId: number = DEFAULT_CHAIN_ID
+
 ) => {
   const contract = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   const amountsWei = amounts.map(a => ethers.parseEther(a || '0'));
@@ -128,26 +134,41 @@ export const submitAddOwner = async (
   ownerName: string,
   pct: number,
   removable: boolean,
-  chainId?: number
+  chainId: number = DEFAULT_CHAIN_ID
+
 ) => {
   const contract = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   const tx = await contract.submitAddOwner(newOwner, ownerName, BigInt(pct), removable);
   return await tx.wait();
 };
 
-export async function confirmTransaction(controllerAddress: string, transactionId: number, chainId?: number) {
+export async function confirmTransaction(controllerAddress: string, transactionId: number, chainId: number = DEFAULT_CHAIN_ID
+) {
   const contract = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   const tx = await contract.confirmTransaction(transactionId);
   return await tx.wait();
 }
 
-export async function revokeConfirmation(controllerAddress: string, transactionId: number, chainId?: number) {
+export async function revokeConfirmation(controllerAddress: string, transactionId: number, chainId: number = DEFAULT_CHAIN_ID
+) {
   const contract = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   const tx = await contract.revokeConfirmation(transactionId);
   return await tx.wait();
 }
 
-export async function executeTransactionManual(controllerAddress: string, transactionId: number, chainId?: number) {
+export async function executeTransactionManual(controllerAddress: string, transactionId: number, chainId: number = DEFAULT_CHAIN_ID) {
+  // Debug reads FIRST
+  const contract_r = getReadContract(controllerAddress, MULTISIG_CONTROLLER_ABI);
+  const txData = await contract_r.transactions(transactionId);
+  const now = Math.floor(Date.now() / 1000);
+  console.log({
+    executed: txData.executed,
+    timelockEnd: txData.timelockEnd.toString(),
+    now,
+    timelockPassed: now >= Number(txData.timelockEnd),
+    confirmed: await contract_r.isConfirmed(transactionId),
+  });
+
   const contract = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   let gasLimit: bigint;
   try {
@@ -159,13 +180,12 @@ export async function executeTransactionManual(controllerAddress: string, transa
   const tx = await contract.executeTransactionManual(transactionId, { gasLimit });
   return await tx.wait();
 }
-
 // ── Factory functions ────────────────────────────────────────────────────────
 export async function createMultiSig(
   name: string, initialOwners: string[], initialNames: string[],
   initialPercentages: number[], initialRemovable: boolean[],
   requiredPercentage: number, timelockPeriod: number, expiryPeriod: number,
-  minOwners: number, chainId?: number
+  minOwners: number, chainId: number = DEFAULT_CHAIN_ID
 ) {
   const contract = await getContractWithSigner(MULTISIG_FACTORY_ADDRESS, MULTISIG_FACTORY_ABI, chainId);
   const pcts = initialPercentages.map(p => BigInt(p));
@@ -244,37 +264,49 @@ export async function getTransaction(controllerAddress: string, transactionId: n
     timelockEnd: t.timelockEnd.toString(),
   };
 }
+export async function isConfirmedBy(controllerAddress: string, txId: number, ownerAddress: string): Promise<boolean> {
+  const contract = getReadContract(controllerAddress, MULTISIG_CONTROLLER_ABI);
+  return await contract.isConfirmedBy(txId, ownerAddress);
+}
 
 // ── Governance ───────────────────────────────────────────────────────────────
-export async function submitChangeName(controllerAddress: string, newName: string, chainId?: number) {
+export async function submitChangeName(controllerAddress: string, newName: string, chainId: number = DEFAULT_CHAIN_ID
+) {
   const c = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   return (await c.submitChangeName(newName)).wait();
 }
-export async function submitChangeRequiredPct(controllerAddress: string, v: number, chainId?: number) {
+export async function submitChangeRequiredPct(controllerAddress: string, v: number, chainId: number = DEFAULT_CHAIN_ID
+) {
   const c = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   return (await c.submitChangeRequiredPct(v)).wait();
 }
-export async function submitChangeTimelock(controllerAddress: string, v: number, chainId?: number) {
+export async function submitChangeTimelock(controllerAddress: string, v: number, chainId: number = DEFAULT_CHAIN_ID
+) {
   const c = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   return (await c.submitChangeTimelock(v)).wait();
 }
-export async function submitChangeExpiry(controllerAddress: string, v: number, chainId?: number) {
+export async function submitChangeExpiry(controllerAddress: string, v: number, chainId: number = DEFAULT_CHAIN_ID
+) {
   const c = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   return (await c.submitChangeExpiry(v)).wait();
 }
-export async function submitChangeMinOwners(controllerAddress: string, v: number, chainId?: number) {
+export async function submitChangeMinOwners(controllerAddress: string, v: number, chainId: number = DEFAULT_CHAIN_ID
+) {
   const c = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   return (await c.submitChangeMinOwners(v)).wait();
 }
-export async function pauseMultisig(controllerAddress: string, chainId?: number) {
+export async function pauseMultisig(controllerAddress: string, chainId: number = DEFAULT_CHAIN_ID
+) {
   const c = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   return (await c.pause()).wait();
 }
-export async function unpauseMultisig(controllerAddress: string, chainId?: number) {
+export async function unpauseMultisig(controllerAddress: string, chainId: number = DEFAULT_CHAIN_ID
+) {
   const c = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   return (await c.unpause()).wait();
 }
-export async function confirmTransactionsBatch(controllerAddress: string, ids: number[], chainId?: number) {
+export async function confirmTransactionsBatch(controllerAddress: string, ids: number[], chainId: number = DEFAULT_CHAIN_ID
+) {
   const contract = await getContractWithSigner(controllerAddress, MULTISIG_CONTROLLER_ABI, chainId);
   for (const id of ids) {
     try { await (await contract.confirmTransaction(id)).wait(); }

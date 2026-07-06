@@ -22,14 +22,14 @@ import { type Chain, defineChain } from "viem"
 import { arbitrum, base, lisk, celo, bsc } from "viem/chains"
 
 export const botchain = defineChain({
-  id: 677,
+  id: 968,
   name: "Botchain",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: {
-    default: { http: [process.env.NEXT_PUBLIC_BOTCHAIN_URL ?? "https://rpc.botchain.ai"] },
+    default: { http: [process.env.NEXT_PUBLIC_BOTCHAIN_URL ?? "https://rpc.bohr.life"] },
   },
   blockExplorers: {
-    default: { name: "Botchain Explorer", url: "https://scan.botchain.ai" },
+    default: { name: "Botchain Explorer", url: "https://scan.bohr.life" },
   },
   testnet: true,
 })
@@ -38,14 +38,14 @@ export const supportedChains: [Chain, ...Chain[]] = [botchain]
 
 export const CHAIN_RPC: Record<number, string> = {
   
-  [botchain.id]: process.env.NEXT_PUBLIC_BOTCHAIN_URL ?? "https://rpc.botchain.ai",
+  [botchain.id]: process.env.NEXT_PUBLIC_BOTCHAIN_URL ?? "https://rpc.bohr.life",
 
 
 }
 
 export const CHAIN_EXPLORERS: Record<number, { name: string; url: string }> = {
   
-  [botchain.id]: { name: "Botchain Explorer", url: "https://scan.botchain.ai" },
+  [botchain.id]: { name: "Botchain Explorer", url: "https://scan.bohr.life" },
 }
 
 export const DEFAULT_CHAIN_ID = botchain.id

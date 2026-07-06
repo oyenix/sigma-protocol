@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { useWallet } from '@/components/providers/wallet-context'; // adjust path
-import { SUPPORTED_CHAINS, getChainConfig } from '@/lib/chains';
+import { SUPPORTED_CHAINS } from '@/lib/chains';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export function NetworkSwitchModal() {

@@ -10,6 +10,7 @@ import { AssetsModal } from '@/components/tabs/asset-modal';
 import { formatAmount } from '@/lib/format';
 import { useWallet } from '@/components/providers/wallet-context';
 import { ethers, BrowserProvider, Contract } from 'ethers';
+import { getWBotPrice, WBOT_FALLBACK_PRICE_USD } from '@/lib/getWBotPrice';
 
 interface OverviewTabProps {
   multisig: MultiSig;
@@ -25,7 +26,7 @@ const TOKEN_OPTIONS = [
 const ERC20_ABI = ["function balanceOf(address) view returns (uint256)", "function decimals() view returns (uint8)"];
 
 export function OverviewTab({ multisig }: OverviewTabProps) {
-  const { wallets } = useWallets();
+const { getActiveSigner } = useWallet();
   const [copied, setCopied] = useState(false);
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isAssetsModalOpen, setIsAssetsModalOpen] = useState(false);
@@ -37,80 +38,47 @@ export function OverviewTab({ multisig }: OverviewTabProps) {
 
   // ... inside OverviewTab component
 
-  const fetchTreasuryValue = async () => {
-    if (!wallets[0] || !multisig.wallet) return;
-    
-    setIsLoadingValue(true);
-    try {
-      const provider = await wallets[0].getEthereumProvider();
-      const ethersProvider = new BrowserProvider(provider);
+ const fetchTreasuryValue = async () => {
+  if (!multisig.wallet) return;
+  setIsLoadingValue(true);
+  try {
+    const signer = await getActiveSigner();
+    if (!signer) return;
+    const ethersProvider = signer.provider;
 
-      // A. Get Prices
-      let prices: Record<string, number> = { 
-         'celo': 0.60, 'celo-dollar': 1.00, 'celo-euro': 1.08, 'weth': 2500 
-      };
+    const nativePrice = await getWBotPrice();
+    const nativeBalance = parseFloat(multisig.balance);
+    const nativeUsd = nativeBalance * nativePrice;
 
+    const breakdown = [{ symbol: 'BOT', balance: nativeBalance.toFixed(4) }];
+    let tokensUsd = 0;
+
+    for (const token of TOKEN_OPTIONS) {
       try {
-         const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=celo,celo-dollar,celo-euro,weth&vs_currencies=usd');
-         const data = await response.json();
-         if(data.celo) prices['celo'] = data.celo.usd;
-         if(data['celo-dollar']) prices['celo-dollar'] = data['celo-dollar'].usd;
-         if(data['celo-euro']) prices['celo-euro'] = data['celo-euro'].usd;
-         if(data.weth) prices['weth'] = data.weth.usd;
-      } catch (e) {
-         console.warn("Using default prices");
+        const contract = new Contract(token.address, ERC20_ABI, ethersProvider);
+        const [bal, decimals] = await Promise.all([
+          contract.balanceOf(multisig.wallet),
+          contract.decimals().catch(() => 18),
+        ]);
+        const formattedBal = parseFloat(ethers.formatUnits(bal, decimals));
+        // add price logic per token if you have pairs for them
+        breakdown.push({ symbol: token.symbol, balance: formattedBal.toFixed(4) });
+      } catch {
+        console.warn(`Failed to load ${token.symbol}`);
       }
-
-      // B. Native Value
-      const nativeBalance = parseFloat(multisig.balance);
-      const nativeUsd = nativeBalance * prices['celo'];
-      
-      const breakdown = [{ symbol: 'CELO', balance: nativeBalance.toFixed(2) }];
-
-      // C. Token Values
-      let tokensUsd = 0;
-      
-      for (const token of TOKEN_OPTIONS) {
-        if (token.address === 'custom') continue;
-
-        try {
-           const contract = new Contract(token.address, ERC20_ABI, ethersProvider);
-           const [bal, decimals] = await Promise.all([
-              contract.balanceOf(multisig.wallet),
-              contract.decimals().catch(() => 18)
-           ]);
-           
-           const formattedBal = parseFloat(ethers.formatUnits(bal, decimals));
-           const price = prices[token.coingeckoId] || 0;
-           
-           // ALWAYS calculate value
-           const val = formattedBal * price;
-           tokensUsd += val;
-
-           // CHANGED: Always push to breakdown, even if balance is 0
-           breakdown.push({ 
-             symbol: token.symbol, 
-             balance: formattedBal.toFixed(2) 
-           });
-           
-        } catch (e) {
-           console.warn(`Failed to load ${token.symbol}`);
-        }
-      }
-
-      setAssetBreakdown(breakdown);
-      setTotalValueUsd(nativeUsd + tokensUsd);
-
-    } catch (err) {
-      console.error("Treasury calculation failed", err);
-    } finally {
-      setIsLoadingValue(false);
     }
-  };
 
+    setAssetBreakdown(breakdown);
+    setTotalValueUsd(nativeUsd + tokensUsd);
+  } catch (err) {
+    console.error("Treasury calculation failed", err);
+  } finally {
+    setIsLoadingValue(false);
+  }
+};
   useEffect(() => {
      fetchTreasuryValue();
-  }, [multisig.wallet, wallets[0]]);
+  }, [multisig.wallet]);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
