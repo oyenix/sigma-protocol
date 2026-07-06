@@ -43,4 +43,4 @@ export interface MultiSig {
   transactions: Transaction[];
   deployed?: number;
   isCreator?: boolean;
-}
+} 

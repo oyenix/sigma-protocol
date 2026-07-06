@@ -96,8 +96,8 @@
   --destructive-foreground: oklch(0.98 0 0);
   
   /* Dark Mode - Borders & Inputs */
-  --border: oklch(0.2 0 0);
-  --input: oklch(0.15 0 0);
+  --border: oklch(0.50 0 0);
+  --input: oklch(0.32 0 0);
   --ring: oklch(0.55 0.3 264);
   
   /* Dark Mode - Chart Colors */
