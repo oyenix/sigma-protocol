@@ -190,7 +190,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const walletType  = session?.walletType ?? null
 
   // ── Mount ─────────────────────────────────────────────────────────────────
-  useEffect(() => {
+ useEffect(() => {
   setDetectedWallets(detectWallets())
 
   const handler = (e: any) => {
@@ -205,26 +205,34 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const saved = loadSession()
   if (saved) {
-    setSession(saved)
     if (saved.walletType === "external") {
       const wallets = detectWallets()
       if (wallets.length > 0) {
         buildProvider(wallets[0].provider).then(result => {
-          if (result) {
+          // Only restore if the wallet address still matches
+          if (result && result.signer.address.toLowerCase() === saved.address.toLowerCase()) {
+            setSession(saved)
             setProvider(result.provider)
             setSigner(result.signer)
             rawProviderRef.current = wallets[0].provider
+          } else {
+            // Address mismatch or wallet locked — drop stale session
+            localStorage.removeItem(SESSION_KEY)
           }
-          setIsInitialized(true)   // ← was missing
+          setIsInitialized(true)
         })
       } else {
-        setIsInitialized(true)     // ← was missing
+        // No wallet extension detected — drop stale session
+        localStorage.removeItem(SESSION_KEY)
+        setIsInitialized(true)
       }
     } else {
-      setIsInitialized(true)       // ← was missing
+      // Embedded wallet — restore as-is, no verification needed
+      setSession(saved)
+      setIsInitialized(true)
     }
   } else {
-    setIsInitialized(true)         // ← was missing
+    setIsInitialized(true)
   }
 
   return () => window.removeEventListener("eip6963:announceProvider", handler)
@@ -399,6 +407,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const connectExternalWallet = useCallback(async (wallet: DetectedWallet) => {
     setIsConnecting(true)
     try {
+      await wallet.provider.request({
+      method: 'wallet_requestPermissions',
+      params: [{ eth_accounts: {} }],
+    })
       await wallet.provider.request({ method: "eth_requestAccounts" })
       const result = await buildProvider(wallet.provider)
       if (!result) throw new Error("Failed to build provider")
@@ -488,14 +500,22 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   // ── Disconnect ────────────────────────────────────────────────────────────
   const disconnect = useCallback(() => {
-    localStorage.removeItem(SESSION_KEY)
-    embeddedSignerCache.current.clear()
-    setSession(null)
-    setProvider(null)
-    setSigner(null)
-    rawProviderRef.current = null
-    toast.success("Disconnected")
-  }, [])
+  localStorage.removeItem(SESSION_KEY)
+  embeddedSignerCache.current.clear()
+  setSession(null)
+  setProvider(null)
+  setSigner(null)
+  rawProviderRef.current = null
+
+  // Force MetaMask to re-prompt on next connect
+  const raw = (window as any).ethereum
+  if (raw?.selectedAddress) {
+    // Some wallets support this — clears the permission cache
+    raw.request({ method: 'wallet_revokePermissions', params: [{ eth_accounts: {} }] }).catch(() => {})
+  }
+
+  toast.success("Disconnected")
+}, [])
 
   // ── Switch chain ──────────────────────────────────────────────────────────
  

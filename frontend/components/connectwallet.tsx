@@ -103,7 +103,10 @@ export function ConnectWallet() {
 
   return (
     <Button
-      onClick={() => setShowModal(true)}
+      onClick={() => {
+  localStorage.removeItem('wallet_session')
+  setShowModal(true)
+}}
       className="h-10 px-6 gap-2 rounded-none border-2 border-black dark:border-white bg-primary text-primary-foreground font-black uppercase italic shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all"
     >
       <Wallet className="h-4 w-4" /> Connect Wallet
