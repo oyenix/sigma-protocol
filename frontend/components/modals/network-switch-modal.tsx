@@ -16,7 +16,7 @@ export function NetworkSwitchModal() {
   }, [isConnected, chainId]);
 
   const handleSwitch = async () => {
-    await switchChain(968); // Botchain
+    await switchChain(677); // Botchain
     setIsOpen(false);
   };
 
@@ -37,7 +37,7 @@ export function NetworkSwitchModal() {
         <div className="bg-muted/10 p-3 border-2 border-black dark:border-white mt-4 text-sm">
           <div className="flex justify-between">
             <span className="font-bold uppercase text-[10px] opacity-60 tracking-widest">Supported:</span>
-            <span className="font-mono font-bold text-xs">Botchain (968)</span>
+            <span className="font-mono font-bold text-xs">Botchain (677)</span>
           </div>
           <div className="flex justify-between pt-2 border-t-2 border-black/10 dark:border-white/10 mt-2">
             <span className="font-bold uppercase text-[10px] opacity-60 tracking-widest">Your Chain:</span>

@@ -340,7 +340,7 @@ export default function DocsPage() {
       <tbody className="divide-y divide-black/10 dark:divide-white/10 font-mono">
          <tr className="bg-muted/10">
             <td className="px-6 py-4 font-bold">MultiSigFactory</td>
-            <td className="px-6 py-4 text-emerald-600 dark:text-emerald-400 font-bold">0x204C4913b83899b91DdF61A0b2BFaeef25c2bCBb</td>
+            <td className="px-6 py-4 text-emerald-600 dark:text-emerald-400 font-bold">0x76cA6fbc8711Ff31315F0dFd713Be4f9e5ED6E44</td>
          </tr>
          <tr>
             <td className="px-6 py-4 font-bold">Your Controller</td>

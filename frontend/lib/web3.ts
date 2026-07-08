@@ -6,7 +6,7 @@ import {
 } from '@/lib/abi';
 import { getActiveSigner } from '@/lib/get-signer'; // your existing helper
 import { DEFAULT_CHAIN_ID } from '@/lib/chains';
-export const MULTISIG_FACTORY_ADDRESS = '0x204C4913b83899b91DdF61A0b2BFaeef25c2bCBb' as const;
+export const MULTISIG_FACTORY_ADDRESS = '0x76cA6fbc8711Ff31315F0dFd713Be4f9e5ED6E44' as const;
 
 // ── Internal helpers ─────────────────────────────────────────────────────────
 

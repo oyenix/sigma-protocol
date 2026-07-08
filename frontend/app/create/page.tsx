@@ -188,7 +188,7 @@ useEffect(() => {
         finalTimelock,
         finalExpiry,
         minOwners,
-        968
+        677
       );
 
       const iface = new Interface(MULTISIG_FACTORY_ABI);

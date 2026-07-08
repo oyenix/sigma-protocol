@@ -31,7 +31,7 @@ export async function getActiveSigner(
 import { type Chain, defineChain } from "viem"
 
 export const botchain = defineChain({
-  id: 968,
+  id: 677,
   name: "Botchain",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: {

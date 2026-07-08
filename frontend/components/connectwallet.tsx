@@ -16,7 +16,7 @@ export function ConnectWallet() {
   const [copied, setCopied] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const chainData = getChainConfig(chainId ?? 968);
+  const chainData = getChainConfig(chainId ?? 677);
 
   const handleCopy = () => {
     if (address) {

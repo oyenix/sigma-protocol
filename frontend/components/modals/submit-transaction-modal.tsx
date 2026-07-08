@@ -40,8 +40,8 @@ const STANDARD_ROUTER_ABI = [
 
 // --- DYNAMIC TOKEN CONFIGURATION ---
 export const CHAIN_TOKENS: Record<number, { name: string; symbol: string; address: string }[]> = {
-  // Base Sepolia (968)
-  968: [
+  // Base Sepolia (677)
+  677: [
     { name: 'USDC (Testnet)', symbol: 'USDC', address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e' },
     { name: 'Wrapped BOT', symbol: 'WBOT', address: '0x4200000000000000000000000000000000000006' },
   ],
@@ -51,7 +51,7 @@ export const CHAIN_TOKENS: Record<number, { name: string; symbol: string; addres
 // --- DYNAMIC DEX CONFIGURATION ---
 export const CHAIN_DEXES: Record<number, { name: string; address: string; abi: string[] }[]> = {
   // Base Sepolia
-  968: [
+  677: [
     { name: 'Uniswap (Botchain)', address: '0x327Df1E6de05895d2ab08513aaDD9313Fe505d86', abi: STANDARD_ROUTER_ABI },
   ],
  
@@ -97,7 +97,7 @@ export function SubmitTransactionModal({
   const { chainId, address } = useWallet();
   
   // 1. Get active chain ID securely
-  const activeChainId = chainId ?? 968;
+  const activeChainId = chainId ?? 677;
 
   // 2. Derive dynamic tokens and DEXes
   const activeTokens = CHAIN_TOKENS[activeChainId] 
